@@ -23,7 +23,7 @@ function gameBoard(){
 
     newBoard();
 
-
+    const getBoard = () => {return board;}
     const resetBoard = () => {
         board = [];
         newBoard();
@@ -34,9 +34,9 @@ function gameBoard(){
         return board[x][y];
     }
 
-    const printBoard = () => board.map((row) => row.map(cell => cell.getValue())); // prints the value of each cell.
+    const printBoard = () => board.map((row) => row.map(cell => cell.getValue())); // prints the value of each cell and only needed for the console version.
 
-    return {printBoard, accessBoard, resetBoard};
+    return {printBoard, getBoard, accessBoard, resetBoard};
 }
 
 
@@ -92,26 +92,105 @@ to drop it and should reflect the changes in the board in the console.
 */
 
 function game(){
-    let user = Player();
+    let win, lose, tie;
+    let countMoves = 0;
+    let remainingCells = 9;
+    const user = Player();
     let currentPlayer = user.getPlayer()[0];
 
-    let board1 = gameBoard();
-    board1.printBoard();
-    board1.resetBoard();
+    const board = gameBoard();
+    const access_board = board.getBoard();
+    board.printBoard();
+    board.resetBoard();
 
+ // this is to check if we've lost or not
+    const gameWin = ()=>{
+        let columnChecker = [];
+        let rowChecker = [];
+        let diagonalChecker = [];
+        let movesCounter = '';
+        for(let i = 0; i<3; i++){
+            for(let j = 0; j<3; j++){
+                movesCounter += board.getBoard()[i][j].getValue();
+            }
+            columnChecker.push(movesCounter);
+            movesCounter = '';
+        }
+
+        for(let i = 0; i<3; i++){
+            for(let j = 0; j<3; j++){
+                movesCounter += board.getBoard()[j][i].getValue();
+            }
+            rowChecker.push(movesCounter);
+            movesCounter = '';
+        }
+
+        for(let i = 0; i< 3; i++){
+            movesCounter += board.getBoard()[i][i].getValue();
+        }
+        diagonalChecker.push(movesCounter);
+        movesCounter = '';  
+        let lastIndex = 3;
+        for(let i =0; i< 3; i++){
+            movesCounter += board.getBoard()[i][lastIndex -1].getValue();
+            lastIndex -=1;
+        }
+        diagonalChecker.push(movesCounter);
+        movesCounter = '';
+
+        if((columnChecker.includes("XXX") || columnChecker.includes("OOO")||
+        rowChecker.includes("XXX") || rowChecker.includes("OOO")||
+        diagonalChecker.includes("XXX")|| diagonalChecker.includes("OOO"))){
+               return win = true;
+        }else{
+            return gameTied();
+        }
+    }
+
+    // check if the game is tied
+    const gameTied = ()=>{
+        if(remainingCells == 0 && (!win || !lose)) return tie = true; 
+    }
     
+    //function to reset the game when a button is clicked {{ for later when DOM is implemented }}
+    const resetGame = ()=>{
+        return board.resetBoard();
+    }
+
+    // function that changes who the current player is
+    const changeCurrentPlayer = ()=>{
+        if(currentPlayer.name == "playerOne") return currentPlayer = user.getPlayer()[1];
+        else if(currentPlayer.name == "playerTwo") return currentPlayer = user.getPlayer()[0];
+    }
     // function which would allow the player to change access the specific cell, which would be the accessCell function from gameBoard,
     // where once accessed we can call the dropToken function from the player to change the value of that cell.
 
-    let changeValue = (x, y) =>{
+    const changeValue = (x, y) =>{
+        if(remainingCells == 0) return gameTied();// if there is win, lose or tie, the game is over;
 
-        let marker = board1.accessBoard(x, y);
+        let marker = board.accessBoard(x, y);
         if(marker.getValue() != 0) return "value present"; // this doesn't allow you to override any cell if there is already value present
+        else{
+            marker.addToken(user.getToken(currentPlayer));
+            countMoves++;
+            // we know that there has to be at least 4 moves before we can check if there someone has won or not.
+            if(countMoves >= 4){
+                let result = gameWin();
+                console.log(result);
+            }
+            remainingCells--;     // we're decreasing the number of remaining cells with each change to help us find out how many empty cells we've till the game ends.
+            changeCurrentPlayer();
+            // if(remainingCells == 0){
+            //     return gameTied();
+            // }
+            // console.log(remainingCells);
+        }
+        console.log(board.printBoard());
 
-        marker.addToken(user.getToken(currentPlayer));
+        
+        
     }
-    console.log(board1.printBoard());
-    return {board1, changeValue};
+    return {access_board, board, changeValue, resetGame};
 }
 
 /*
@@ -124,18 +203,32 @@ c. Basic game logic
 d. being able to drop the value of the current player(it doesn't automatically change) in a cell.
 e. not letting a cell be overridden by another players value.
 f. being able to reset and get a new board.
+g. Logic to change player automatically after one player has made the move.
+h. Logic to figure out the win, loss or tie situation.
 
 Things to work on:
-a. Logic to change player automatically after one player has made the move.
-b. Logic to figure out the win, loss or tie situation.
-c. Integrate the screen controls so that you can play from browser.
+
+In order to check the win, lose, or tie situation we need to have something that will run once the values are changed and to make it more efficient we know that we don't need
+to check until one of the player does at least 3 moves.
+Once the third move is done we can start to check if there are any conditions or players that have won.
+
+a. Logic to figure out if the computer won or the player
+b. Integrate the screen controls so that you can play from browser.
 
 */
 
 
-let game1 = game();
+const game1 = game();
+// game1.changeValue(0,1);
+// game1.changeValue(0,0);
 
-game1.changeValue(1,2);
-game1.changeValue(0,0);
+// game1.changeValue(0,2);
 
-console.log(game1.board1.printBoard());
+// game1.changeValue(1,1);
+// game1.changeValue(1,0);
+// game1.changeValue(1,2);
+// game1.changeValue(2,0);
+// game1.changeValue(2,2);
+// game1.changeValue(2,1);
+
+console.log(game1.board.printBoard());
