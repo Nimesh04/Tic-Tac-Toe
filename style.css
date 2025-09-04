@@ -5,7 +5,61 @@
 }
 
 body{
-    background-color: rgb(53, 50, 50);
+    background-color: rgb(8 0 18);
     color: white;
     text-align: center;
+}
+
+h1{
+    font-size: 3rem;
+}
+
+.score-board, .controls{
+    display: flex;
+    justify-content: center;
+    gap: 160px;
+}
+
+.big-container{
+    display: flex;
+    justify-content: center;
+}
+
+.container{
+    display: grid;
+    grid-template-columns: repeat(3, 200px);
+    gap: 10px;
+}
+
+.cells{
+    width: 200px;
+    height: 200px;
+    background-color: rgb(65 119 111);
+    border: 1px solid black;
+    cursor:pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.cells:hover{
+    background-color: rgb(41, 77, 71);
+}
+
+#start, #restart{
+    margin-top: 1.2rem;
+}
+
+button{
+    padding: 1rem;
+    font-size: 1.2rem;
+    border-radius: 0.8rem;
+    width: 120px;
+    background-color: #760eff;
+    color: white;
+    border: none;
+    cursor:pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+button:hover{
+    background-color: #4d07a8;
 }
