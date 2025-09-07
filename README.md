@@ -1,1 +1,1 @@
-Broweser friendly Tic Tac Toe game
+Browser friendly Tic Tac Toe game
