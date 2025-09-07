@@ -24,10 +24,7 @@ const gameBoard = (function (){
     newBoard();
 
     const getBoard = () => {return board;}
-    const resetBoard = () => {
-        board = [];
-        newBoard();
-    }
+
 
 
     const accessBoard = (x, y) => {
@@ -35,6 +32,11 @@ const gameBoard = (function (){
     }
 
     const printBoard = () => board.map((row) => row.map(cell => cell.getValue())); // prints the value of each cell and only needed for the console version.
+
+    const resetBoard = () => {
+        board = [];
+        newBoard();
+    }
 
     return {printBoard, getBoard, accessBoard, resetBoard};
 })();
@@ -88,16 +90,17 @@ to drop it and should reflect the changes in the board in the console.
 
 function game(){
     let win, lose, tie;
+    let result = '';
     let countMoves = 0;
     let remainingCells = 9;
     const user = Player();
     let currentPlayer = user.getPlayer()[0];
 
     const board = gameBoard;
-    const access_board = board.getBoard();
-    board.printBoard();
     board.resetBoard();
 
+
+    const getResult = () =>{ return result;}
  // this is to check if we've lost or not
     const gameWin = ()=>{
         let columnChecker = [];
@@ -133,72 +136,91 @@ function game(){
         diagonalChecker.push(movesCounter);
         movesCounter = '';
 
-        if((columnChecker.includes("XXX") || 
-        rowChecker.includes("XXX") || 
-        diagonalChecker.includes("XXX"))){
-            console.log("Player won!");
-            return win = true;
+        if((columnChecker.includes("XXX") || rowChecker.includes("XXX") || diagonalChecker.includes("XXX"))){
+            win = true;
+            return;
         }else if(columnChecker.includes("OOO")|| rowChecker.includes("OOO")|| diagonalChecker.includes("OOO")){
-            console.log("Computer won");
-            return lose = true;
-        }else{
-            return gameTied();
+            lose = true;    
+            return;
         }
-    }
-
-    // check if the game is tied
-    const gameTied = ()=>{
-        if(remainingCells == 0 && (!win || !lose)) return tie = true; 
+        // else{
+        //     tie = true;
+        //     return;
+        // }
     }
     
     //function to reset the game when a button is clicked {{ for later when DOM is implemented }}
     const resetGame = ()=>{
+        result = '';
+        win, lose, tie = false;
         return board.resetBoard();
     }
-    const computerTurn = ()=>{
-        let x = Math.floor(Math.random() *3);
-        let y = Math.floor(Math.random() *3);
-        console.log("Player two choose: ", x, y);
-        changeCurrentPlayer();
-        changeValue(x, y);
-    }
+    // const computerTurn = ()=>{
+    //     let x = Math.floor(Math.random() *3);
+    //     let y = Math.floor(Math.random() *3);
+    //     console.log("Player two choose: ", x, y);
+    //     changeCurrentPlayer();
+    //     changeValue(x, y);
+    // }
     // function that changes who the current player is
     const changeCurrentPlayer = ()=>{
         if(currentPlayer.name == "playerOne") return currentPlayer = user.getPlayer()[1];
-        else if(currentPlayer.name == "playerTwo"){
-            return currentPlayer = user.getPlayer()[0];  
-        }
+        else if(currentPlayer.name == "playerTwo") return currentPlayer = user.getPlayer()[0];  
     }
     // function which would allow the player to change access the specific cell, which would be the accessCell function from gameBoard,
     // where once accessed we can call the dropToken function from the player to change the value of that cell.
 
-    const changeValue = (x, y) =>{
-        if(remainingCells == 0) return gameTied();// if there is win, lose or tie, the game is over;
-
+    const changeValue = (div, x, y) =>{
         let marker = board.accessBoard(x, y);
+
+        //removing the computer right now so that it would be 2 human players vs each other
         if(marker.getValue() != 0){
-            if(currentPlayer.name == "playerTwo") {     // if the computer pick an option which already has value, we randomize the choice again and do it
-                let x = Math.floor(Math.random() *3);
-                let y = Math.floor(Math.random() *3);
-                console.log("Value present so Player two choose: ", x, y);
-                changeValue(x, y);
-            }
-            else return "value present"; // this doesn't allow you to override any cell if there is already value present
+            return "value present";
+            // if(currentPlayer.name == "playerTwo") {     // if the computer pick an option which already has value, we randomize the choice again and do it
+            //     let x = Math.floor(Math.random() *3);
+            //     let y = Math.floor(Math.random() *3);
+            //     console.log("Value present so Player two choose: ", x, y);
+            //     changeValue(x, y);
+            // }
+            // else return "value present"; // this doesn't allow you to override any cell if there is already value present
         }else{
             marker.addToken(user.getToken(currentPlayer));
             countMoves++;
+            if(currentPlayer.name == "playerOne") {
+                div.innerHTML += '<svg xmlns="http://www.w3.org/2000/svg" fill= "#ff57f5" viewBox="0 0 24 24"><title>close-thick</title><path d="M20 6.91L17.09 4L12 9.09L6.91 4L4 6.91L9.09 12L4 17.09L6.91 20L12 14.91L17.09 20L20 17.09L14.91 12L20 6.91Z" /></svg>';
+                changeCurrentPlayer();
+                // computerTurn();
+            }  //give the computer it's turn if we're player one if it was computer's turn just changes it to our player
+            else {
+                div.innerHTML += '<svg xmlns="http://www.w3.org/2000/svg" fill="#94ffa4" viewBox="0 0 24 24"><title>circle-outline</title><path d="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" /></svg>';
+                changeCurrentPlayer();
+            }
             // we know that there has to be at least 4 moves before we can check if there someone has won or not.
             if(countMoves >= 4){
-                let result = gameWin();
-                console.log(result);
+                gameWin();
+                if(win === true){
+                    result = "Player X won!";
+                    return;
+                }else if(lose === true){
+                    result = "Player O won!";
+                    return;
+                }else if(tie === true){
+                    result = "Game Tied";
+                    return;
+                }
             }
             remainingCells--;     // we're decreasing the number of remaining cells with each change to help us find out how many empty cells we've till the game ends.
-            if(currentPlayer.name == "playerOne") computerTurn();  //give the computer it's turn if we're player one if it was computer's turn just changes it to our player
-            else changeCurrentPlayer();
-        }
-        console.log(board.printBoard());
+        
+        
+        }  
+        if((remainingCells == 0) && (!win || !lose)) {
+            tie = true;
+            result = "Game Tied";
+            return;
+        }  
     }
-    return {access_board, board, changeValue, resetGame};
+  
+    return {getResult, changeValue, resetGame};
 }
 
 /*
@@ -227,14 +249,100 @@ a. Integrate the screen controls so that you can play from browser.
 
 
 const displayController = (function (){
+    let playerX = document.querySelector(".human >h3");
+    let playerY = document.querySelector(".computer >h3");
     let cellDiv = document.querySelectorAll(".cells");
+    let resultDiv = document.querySelector(".display");
+    let startBtn = document.querySelector("#start");
+    let restartBtn = document.querySelector("#restart");
+
+    let player1 = 0;
+    let player2 = 0 ;
+    let game1 = game();
+
+    startBtn.addEventListener("click", () =>{
+
+        player1 = 0;
+        player2 = 0;
+        playerX.textContent = `Player X: ${player1}`;
+        playerY.textContent = `Player O: ${player2}`;
+        game1 = game();
+        cellDiv.forEach(cell =>{
+            cell.style.pointerEvents = "auto";
+            cell.innerHTML = '';
+        })
+        resultDiv.innerHTML = "Player X turn";
+        setTimeout(() =>{resultDiv.innerHTML = ""}, 1000);
+        event.preventDefault();
+    })
+    const checkData = function (cell){
+        const value = cell.dataset.value;
+        switch (value){
+            case "0":
+                game1.changeValue(cell,0,0);
+                break;
+            case "1":
+                game1.changeValue(cell, 0,1);
+                break;
+            case "2":
+                game1.changeValue(cell, 0, 2);
+                break;
+            case "3":
+                game1.changeValue(cell, 1,0);
+                break;
+            case "4":
+                game1.changeValue(cell,1,1);
+                break;
+            case "5":
+                game1.changeValue(cell, 1,2);
+                break;
+            case "6":
+                game1.changeValue(cell, 2,0);
+                break;
+            case "7":
+                game1.changeValue(cell, 2,1);
+                break;
+            case "8":
+                game1.changeValue(cell, 2,2);
+                break;
+        }
+        
+        if(game1.getResult()){
+            resultDiv.innerHTML = game1.getResult();
+            restartBtn.style.display = "block";
+            if(game1.getResult() == "Player X won!"){
+                player1++;
+                playerX.textContent = `Player X: ${player1}`;
+            }else if(game1.getResult() =="Player O won!"){
+                player2++;
+                playerY.textContent = `Player O: ${player2}`;
+            }
+            //makes the rest of the div un=clickable
+            cellDiv.forEach(cell =>{
+                cell.style.pointerEvents = "none";
+            })
+
+            event.preventDefault();
+        }
+    }
+
+    restartBtn.addEventListener("click", ()=>{
+        game1 = game();
+        cellDiv.forEach(cell =>{
+            cell.innerHTML = '';
+            cell.style.pointerEvents = "auto";
+        })
+        resultDiv.innerHTML = "";
+        restartBtn.style.display = "none";
+        event.preventDefault();
+    })
 
     cellDiv.forEach(cell =>{
-        cell.addEventListener("click", () => console.log("div is clicked"));
+        cell.addEventListener("click", () => {
+            checkData(cell);
+        });
     })
 })();
 
-
-const game1 = game();
 displayController;
-console.log(game1.board.printBoard());
+
